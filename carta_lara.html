@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Lara 💌</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #eee;
+  }
+  .container {
+    max-width: 520px;
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border-radius: 24px;
+    padding: 28px 22px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 6px;
+    color: #ffd369;
+  }
+  .subtitle {
+    font-size: 0.92rem;
+    color: #bbb;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.4s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  #intro p { margin-bottom: 20px; line-height: 1.6; }
+  button.start-btn, .check-btn, .next-btn {
+    background: #ffd369;
+    color: #1a1a2e;
+    border: none;
+    padding: 13px 26px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  button.start-btn:active, .check-btn:active, .next-btn:active { transform: scale(0.96); }
+  .check-btn { background: rgba(255,255,255,0.12); color: #eee; border: 1px solid rgba(255,255,255,0.3); }
+
+  /* Barra de progreso 1-10 */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd369, #ff9a3d);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+  .progress-label { font-size: 0.78rem; color: #999; }
+
+  .feedback { margin-top: 14px; font-size: 0.9rem; min-height: 20px; }
+  .feedback.error { color: #ff6b6b; }
+  .feedback.success { color: #69ffb3; }
+  .hint { font-size: 0.82rem; color: #999; margin-top: 14px; }
+
+  /* Puzzle: criptoaritmetica */
+  .cripto-eq { font-size: 1.6rem; font-weight: bold; letter-spacing: 4px; font-family: 'Courier New', monospace; }
+  .cripto-eq td { padding: 4px 6px; text-align: center; }
+  .letter-inputs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 18px 0; }
+  .letter-box { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .letter-box label { font-size: 1rem; font-weight: bold; color: #ffd369; }
+  .letter-box input {
+    width: 44px; height: 44px;
+    text-align: center;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #eee;
+  }
+  .letter-box input:focus { outline: none; border-color: #ffd369; }
+
+  /* Sudoku */
+  .sudoku-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    max-width: 220px; margin: 14px auto;
+    background: rgba(255,255,255,0.15); padding: 5px; border-radius: 10px;
+  }
+  .sudoku-cell {
+    width: 48px; height: 48px; background: rgba(255,255,255,0.08); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: bold; border: none; color: #eee; text-align: center;
+  }
+  .sudoku-cell.fixed { background: rgba(255,211,105,0.2); color: #ffd369; }
+  .sudoku-cell.editable { background: rgba(255,255,255,0.12); }
+  .sudoku-cell.editable:focus { outline: 2px solid #ffd369; }
+  .sudoku-cell[data-thick-r="1"] { border-right: 3px solid rgba(0,0,0,0.3); }
+  .sudoku-cell[data-thick-b="1"] { border-bottom: 3px solid rgba(0,0,0,0.3); }
+
+  /* Memoria visual */
+  .memory-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    max-width: 260px; margin: 18px auto;
+  }
+  .memory-cell {
+    aspect-ratio: 1; border-radius: 14px; cursor: pointer;
+    transition: transform 0.15s, filter 0.2s;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .memory-cell:active { transform: scale(0.93); }
+  .memory-cell.lit { filter: brightness(1.6); box-shadow: 0 0 20px currentColor; }
+  .memory-cell.selected { outline: 3px solid #ffd369; }
+  .memory-status { font-size: 0.85rem; color: #999; margin-top: 10px; }
+
+  /* Anagrama */
+  .anagram-letters { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 18px 0; }
+  .anagram-tile {
+    width: 46px; height: 46px; background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(255,255,255,0.25); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: bold; cursor: pointer; user-select: none;
+  }
+  .anagram-tile.used { opacity: 0.2; pointer-events: none; }
+  .anagram-answer { display: flex; gap: 8px; justify-content: center; margin: 14px 0; min-height: 52px; }
+  .anagram-slot {
+    width: 46px; height: 46px; border: 2px dashed rgba(255,255,255,0.3);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: bold; cursor: pointer;
+  }
+  .anagram-slot.filled { border-style: solid; border-color: #ffd369; background: rgba(255,211,105,0.15); }
+
+  /* Cesar */
+  .cesar-box {
+    font-family: 'Courier New', monospace; font-size: 1.1rem; letter-spacing: 2px;
+    background: rgba(255,255,255,0.08); border-radius: 12px; padding: 16px;
+    margin: 16px 0; word-break: break-all;
+  }
+  .cesar-input {
+    width: 100%; max-width: 320px; padding: 12px; font-size: 1rem;
+    border-radius: 10px; border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08); color: #eee; text-align: center;
+    margin-top: 12px;
+  }
+  .cesar-input:focus { outline: none; border-color: #ffd369; }
+
+  /* Serie numerica */
+  .serie-box { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 18px 0; }
+  .serie-num {
+    min-width: 50px; height: 50px; padding: 0 6px; background: rgba(255,255,255,0.08);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);
+  }
+  .serie-num.missing { border: 2px dashed #ffd369; background: rgba(255,211,105,0.1); }
+  .serie-input {
+    width: 100px; padding: 10px; font-size: 1.1rem; text-align: center;
+    border-radius: 10px; border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08); color: #eee; margin-top: 8px;
+  }
+  .serie-input:focus { outline: none; border-color: #ffd369; }
+
+  /* Acertijo texto */
+  .riddle-text { text-align: left; line-height: 1.7; font-size: 0.95rem; margin: 16px 0; color: #ddd; }
+  .riddle-options { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .riddle-option {
+    background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 12px; padding: 12px; cursor: pointer; font-size: 0.95rem;
+    transition: all 0.15s;
+  }
+  .riddle-option:hover { background: rgba(255,211,105,0.12); }
+  .riddle-option.correct { border-color: #69ffb3; background: rgba(105,255,179,0.15); }
+  .riddle-option.wrong { border-color: #ff6b6b; background: rgba(255,107,107,0.15); }
+
+  /* Sliding puzzle */
+  .slide-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    max-width: 260px; margin: 18px auto;
+    background: rgba(255,255,255,0.1); padding: 6px; border-radius: 14px;
+  }
+  .slide-tile {
+    aspect-ratio: 1; background: linear-gradient(135deg, #ffd369, #ff9a3d);
+    color: #1a1a2e; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.4rem; font-weight: bold; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .slide-tile.empty { background: transparent; cursor: default; }
+
+  /* Lights Out */
+  .lights-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; margin: 24px auto; width: fit-content; }
+  .lights-cell { width: 80px; height: 80px; border-radius: 14px; cursor: pointer; transition: background 0.15s, transform 0.1s; border: 2px solid rgba(255,255,255,0.1); }
+  .lights-cell.on { background: #ffd369; box-shadow: 0 0 18px rgba(255,211,105,0.6); }
+  .lights-cell.off { background: rgba(255,255,255,0.06); }
+  .lights-cell:active { transform: scale(0.93); }
+  .lights-moves { font-size: 0.88rem; color: #999; margin-top: 4px; }
+
+  /* Carta final */
+  #carta { text-align: left; line-height: 1.8; font-size: 1rem; white-space: pre-wrap; color: #f5f5f5; }
+  .envelope { font-size: 3rem; margin-bottom: 10px; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .pulse { animation: pulse 1.5s infinite; }
+</style>
+</head>
+<body>
+<div class="container" id="mainContainer">
+
+  <div class="screen active" id="intro">
+    <div class="envelope pulse">🔒💌</div>
+    <h1>Para Lara</h1>
+    <p class="subtitle">Hay una carta esperándote.<br>Pero antes, 9 desafíos te separan de ella.</p>
+    <p>¿Lista?</p>
+    <button class="start-btn" onclick="goToStep(1)">Empezar →</button>
+  </div>
+
+  <!-- DESAFIO 1: Anagrama -->
+  <div class="screen" id="step1">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:11%"></div></div>
+      <div class="progress-label">Desafío 1 de 9</div>
+    </div>
+    <h1>Palabra escondida</h1>
+    <p class="subtitle">Estas letras esconden una palabra. Tocalas en orden para formarla.</p>
+    <div class="anagram-answer" id="anagramAnswer"></div>
+    <div class="anagram-letters" id="anagramLetters"></div>
+    <p class="hint">Pista: tiene 7 letras y es lo más importante de la vida.</p>
+    <div class="feedback" id="anagramFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 2: Serie numerica -->
+  <div class="screen" id="step2">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:22%"></div></div>
+      <div class="progress-label">Desafío 2 de 9</div>
+    </div>
+    <h1>El patrón oculto</h1>
+    <p class="subtitle">Esta serie sigue una regla que combina dos operaciones alternadas. ¿Qué número sigue?</p>
+    <div class="serie-box" id="serieBox"></div>
+    <input type="number" class="serie-input" id="serieInput" placeholder="?">
+    <br>
+    <button class="check-btn" onclick="checkSerie()" style="margin-top:14px">Comprobar</button>
+    <div class="feedback" id="serieFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 3: Codigo Cesar -->
+  <div class="screen" id="step3">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:33%"></div></div>
+      <div class="progress-label">Desafío 3 de 9</div>
+    </div>
+    <h1>Mensaje cifrado</h1>
+    <p class="subtitle">Cada letra fue reemplazada por otra, siempre la misma cantidad de lugares hacia adelante en el abecedario. Descifrá el mensaje.</p>
+    <div class="cesar-box">IHOLFHV WUHFH ODOX</div>
+    <p class="hint">Pista: probá desplazar cada letra 3 lugares hacia atrás (A → X, B → Y...).</p>
+    <input type="text" class="cesar-input" id="cesarInput" placeholder="Escribí el mensaje descifrado">
+    <br>
+    <button class="check-btn" onclick="checkCesar()" style="margin-top:14px">Comprobar</button>
+    <div class="feedback" id="cesarFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 4: Sudoku -->
+  <div class="screen" id="step4">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:44%"></div></div>
+      <div class="progress-label">Desafío 4 de 9</div>
+    </div>
+    <h1>Sudoku 4x4</h1>
+    <p class="subtitle">Completá la grilla: cada fila, columna y cuadrante de 2x2 debe tener los números 1, 2, 3 y 4 sin repetirse.</p>
+    <div class="sudoku-grid" id="sudokuGrid"></div>
+    <button class="check-btn" onclick="checkSudoku()">Comprobar</button>
+    <div class="feedback" id="sudokuFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 5: Adivinanza con trampa -->
+  <div class="screen" id="step5">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:56%"></div></div>
+      <div class="progress-label">Desafío 5 de 9</div>
+    </div>
+    <h1>Pensá distinto</h1>
+    <div class="riddle-text">
+      Un papá tiene 3 hijas. Cada hija tiene exactamente 1 hermano.<br><br>
+      ¿Cuántos hijos varones tiene el papá en total?
+    </div>
+    <div class="riddle-options" id="riddleOptions1"></div>
+    <div class="feedback" id="riddleFeedback1"></div>
+  </div>
+
+  <!-- DESAFIO 6: Acertijo de logica -->
+  <div class="screen" id="step6">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:67%"></div></div>
+      <div class="progress-label">Desafío 6 de 9</div>
+    </div>
+    <h1>¿Quién dice la verdad?</h1>
+    <div class="riddle-text">
+      Ana, Bea y Cati escondieron un regalo. Una de ellas tiene la posta, las otras dos dicen cualquier cosa.<br><br>
+      • Ana dice: "Yo no tengo el regalo"<br>
+      • Bea dice: "Cati tiene el regalo"<br>
+      • Cati dice: "Bea está mintiendo"<br><br>
+      Sabés que <b>solo una</b> de las tres frases es verdadera. ¿Quién tiene el regalo?
+    </div>
+    <div class="riddle-options" id="riddleOptions2"></div>
+    <div class="feedback" id="riddleFeedback2"></div>
+  </div>
+
+  <!-- DESAFIO 7: Sliding puzzle -->
+  <div class="screen" id="step7">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:78%"></div></div>
+      <div class="progress-label">Desafío 7 de 9</div>
+    </div>
+    <h1>Ordená los números</h1>
+    <p class="subtitle">Tocá las fichas para moverlas hacia el espacio vacío. Ordenalas del 1 al 8.</p>
+    <div class="slide-grid" id="slideGrid"></div>
+    <div class="feedback" id="slideFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 8: Lights Out -->
+  <div class="screen" id="step8">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:89%"></div></div>
+      <div class="progress-label">Desafío 8 de 9</div>
+    </div>
+    <h1>Apagá las luces</h1>
+    <p class="subtitle">Tocá una celda para cambiar su estado y el de sus vecinas (arriba, abajo, izquierda, derecha). Apagá todas las luces.</p>
+    <div class="lights-grid" id="lightsGrid"></div>
+    <div class="lights-moves">Movimientos: <span id="lightsCount">0</span></div>
+    <button class="check-btn" onclick="resetLights()" style="margin-top:10px">Reiniciar</button>
+    <div class="feedback" id="lightsFeedback"></div>
+  </div>
+
+  <!-- DESAFIO 9: Criptoaritmetica -->
+  <div class="screen" id="step9">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+      <div class="progress-label">Desafío 9 de 9 — el último</div>
+    </div>
+    <h1>El código final</h1>
+    <p class="subtitle">Cada letra es un dígito del 0 al 9. Letras iguales = mismo número. Encontrá los valores para que la suma cierre.</p>
+    <table class="cripto-eq" style="margin:18px auto; border-collapse:collapse;">
+      <tr>
+        <td style="padding-right:8px; color:transparent;">+</td>
+        <td>L</td><td>A</td><td>R</td><td>A</td>
+      </tr>
+      <tr style="border-bottom: 2px solid rgba(255,255,255,0.4);">
+        <td style="padding-right:8px; color:#ffd369;">+</td>
+        <td>L</td><td>A</td><td>R</td><td>A</td>
+      </tr>
+      <tr>
+        <td style="padding-right:8px; color:transparent;">+</td>
+        <td>A</td><td>M</td><td>O</td><td>R</td>
+      </tr>
+    </table>
+    <div class="letter-inputs" id="criptoInputs"></div>
+    <button class="check-btn" onclick="checkCripto()">Comprobar</button>
+    <div class="feedback" id="criptoFeedback"></div>
+  </div>
+
+  <div class="screen" id="final">
+    <div class="envelope">💌</div>
+    <h1>¡Lo lograste, Lara!</h1>
+    <div id="carta">Hola pipi!
+Te quiero decir tantas cosas que no sé por dónde empezar, ergo, voy a fluir y voy a escribir sin borrar. Lo primero: Esto mismo que acaba de pasar en esa palabra ergo. Te invito a que intentes darte cuenta qué significa sólo por el contexto en donde está, siempre podés chequear después en internet. Todo esto venía a que amo profundamente tus ganas de aprender. Te admiro por eso -entre otras cosas por supuesto-, pero te lo quiero decir porque es hermoso ver el interés que tenés por todo, y ni hablar de la capacidad. Según cómo lo veo yo, el interés y la capacidad son primos prácticamente. Te interesa porque tenés capacidad para entenderlo o resolverlo, y viceversa. Sea lo que fuere.
+
+Bueno, siguiendo con lo mío que no sé bien cómo organizar todo lo que te quiero decir ni tampoco sé bien qué te quiero decir ni qué es lo que voy a terminar diciendo, te cuento que (creo que algo sabés), yo solía escribirles unas palabras a vos y a Male cada vez que cumplían años, en facebook. Recuerdo cómo sucedió la primera vez y fue gracias a vos. Una foto tuya en una parrilla que íbamos con mami cuando vivíamos en Hidalgo y no sé, vino una inspiración, unas ganas de compartir esa foto con quien quisiera verla y por sobre todas las cosas, unas re ganas de compartir lo que me pasaba a mí con esa foto, con vos, con todo, con todo aquel que le interese también. Entonces escribí una publicación en fb con esa foto que me di cuenta que me salió de adentro. Cada vez que veo esa publicación o cualquiera de las otras de los otros años de vos y de Male, me doy cuenta que todo lo que escribí salió de adentro, me emociona un montón y ni hablar los comentarios de la gente que las veía. Qué te quiero decir con esto? No sé bien, te lo quiero contar. Creo que mientras escribo me doy cuenta de cosas (de paso te lo recomiendo como práctica) y me doy cuenta que al final vos y Male fueron la llave para mí. No sé bien cómo explicártelo o si vos realmente entenderás lo que yo intento decir. Pero fueron la llave para mi en un montón de sentidos por supuesto, pero en este de que salgan mis sentimientos de una forma que nunca antes me había pasado, sin ninguna duda.
+
+Espero que no te aburra esta carta por no ser una carta tan tradicional del tipo "Hola Lari, quería decirte que te amo y que sos lo mejor que me pasó en la vida!". Todo eso también me pasa, desde ya, y lo sabés; pero ya no quiero decírtelo así. Quiero contarte cosas para que vos sepas lo que le pasa a un papá como yo con el hecho de que vos y Male existan en mi vida. No quiero sonar cursi, sé que soy cargoso, molesto, que doy cringe. Y no quiero dar cringe diciendo eso mismo, pero es que vos no te das una idea de lo lindo que es dar cringe con tus hijos por estar insoportablemente enamorado. Ahora que puse "cargoso, molesto" me acordé de la carta que me escribiste para el día del padre. Me acordé recién. No estaba escribiendo esta carta como devolución de la tuya, pero ahora apareció de la nada y me viene bien para decirte algunas otras cositas, pues estoy improvisando esta escritura. Hija, yo sé que vos me escribiste todo lo que me escribiste con el corazón. Me llegó profundamente y en un punto yo también me reconozco así como me describís; y estoy agradecido por eso por varias cosas, pero la principal es que todo lo que vos decís que yo soy, llegado el caso lo soy por el sólo hecho de que lo soy. Es decir, no es producto de una estrategia, ni de un plan a largo plazo, ni de compararme con un papá vecino. Es lo que me pasa, es lo que me atraviesa, es algo que no puedo conducir yo para donde yo quiera. Sencillamente me pasa. Por eso quiero decirte (a ambas, pero te estoy escribiendo a vos ahora): GRACIAS. Porque todo eso me pasa por ustedes, con lo cual es una especie de loop hermoso, ustedes aparecen en mi vida, a mi me pasa todo lo que me pasa con ustedes y como resultado soy lo que soy con ustedes, y eso hace que uds sean lo que son para conmigo, y eso me retroalimenta a mi para que me sigan pasando todas las cosas que me hacen ser lo que hoy soy, y así. Por eso hija, hijas: GRACIAS INFINITAS por ser, por existir en mi vida.
+
+No tengo ninguna duda que vinieron a mi vida (y perdón que hable de mi, pero otra vez, creo que es la forma más transparente de hablarte sin endulzarte el oído con palabras hechas, ciertas pero devaluadas de tanto que se dicen y se dicen) para hacerme conocer el verdadero amor que, creeme, aún no lo conocés. Y no me malinterpretes, no quiero sonar como que lo que uds sienten por mamá y yo, o ya más en tu caso por tus amig@s y/o novi@s no es real, o profundo o super intenso. Claro que sí lo es, yo también estuve ahí. Lo que intento decir es que es como una escalera en la que todavía les faltan subir algunos escalones, así que preparate Lari, la cosa se pone cada vez mejor!
+
+Por eso hija de paso, aprovecho para recordarte que todas las veces que tengas alguna duda en lo que sea, vos acordate que mamá y yo estamos algunos escalones más arriba, no porque "ayyy ellos están más arriba", no hay una competencia en esto ni nada que se le parezca, estamos más arriba porque empezamos antes y nada más, los abuelos están más arriba que yo, y así. Sé que lo entendés. Entonces, por favor hija, cuando tengas alguna duda de cualquier cosa, acordate que mamá y yo ya estuvimos en ese escalón. Por favor te pido que en lo posible recuerdes siempre no suponer ni dar nada por hecho. Tenés dudas, probá, experimentá lo que necesites, pero siempre confiá en lo que te dice tu corazón. No lo pienses ahora, te vas a dar cuenta cada vez que lo sientas. No ignores las alarmas. Eso que sentís, es. Parece simplón pero es que es así. Lo que sentís → ES. Por favor hija guardate esa ley muy dentro tuyo. Con todo lo mal que hicimos las cosas con mami cuando nos separamos, aún así sé y me consta que puedo incluir a mamá en esta cuestión: SIEMPRE vamos a estar para ustedes. Significa que si tu diálogo interno tiene dudas, o de repente la confianza en tu criterio está como medio hackeada y te sentís confundida, preguntale a mamá, preguntame a mí, preguntanos a los dos por separado o a los dos juntos. Lo que sea. No sé mi amor perdón, me fui por las ramas porque cumplís 13 años y tu infancia se me empieza a escapar de la manos. Me gustó mucho poder haber tenido esa charla con vos en el auto y espero que la hayas tomado a bien y que te haya servido. Creo que mamá y yo hicimos un excelente trabajo con la crianza de ustedes aún habiendo cometido un montón de errores propios del aprendizaje de quien va caminando por la vida aprendiendo a vivir. Tener hijos es una experiencia transformadora por completo, imagino que debe ser la más potente que existe, o al menos para mi lo fue y en esa improvisación uno va haciendo lo mejor que puede. Por eso, ahora que estás cumpliendo 13, no me queda otra que pararme firme y confiar en que estás saliendo a la cancha con las mejores herramientas, con un recontra entrenamiento y que te va a ir bien en todo sentido, con los pozos del camino y todo pero siempre resolviendo. Llega un momento que te das cuenta que confiar en tus habilidades en lugar de dudar de ellas está buenísimo y es muy pero muy potente. Por eso te quiero decir las cosas de otro modo. Porque si yo te digo "confiá en tus habilidades que te va a salir todo bien" es una frase más que entra en un oído y sale por el otro, porque ya la hemos oído mil veces así como te decía antes (e igual las digo, ojo). Pero en esta carta te quiero contar estas cositas más desde mi enfoque sobretodo porque es demencial lo parecida que sos a mi. Desde este escalón en el que estoy parado hoy yo te quiero decir que a tu edad tuve todos los mismos miedos que tenés vos hoy, los mismos entusiasmos, las mismas inquietudes, la misma personalidad. Lo veo hija, es tan simple como eso. Lo veo y me recuerdo ahí. Y al final hoy, con 48 años, veo que todo aquello a lo que en algún momento le temí, no era otra cosa que una barrera que yo mismo ponía ahí, no sé bien por qué la ponía, no creo que algún día lo sepa realmente. Pero sospecho que tiene que ver con el discurso sobre sí mismo que uno se arma en su cabeza, contaminado en cantidades absurdas por el ruido exterior. Por ruido exterior me refiero a todo: la tele, la gente que habla, en mi época la radio, la gente que habla, en la época los abuelos los diarios, la gente que habla, los reels, la gente que habla. No importa en qué generación. El ruido está siempre presente en cualquier formato. Pero ojo, aún siendo libros, diarios, televisión por aire, televisión por cable, internet, reels, shorts, tiktoks, twitter, X, instagram, facebook, IA, siempre, SIEMPRE, es gente hablando. Incluso la IA, que es el resultado de haber escuchado TODA la internet. Entonces hija, lo que te quiero decir es, vos confiá siempre en vos. No te digo que no escuches el ruido porque es imposible no escucharlo y porque además entre tanto ruido a veces podés encontrar música, quiero decir, hay que tratar de "sintonizar el canal correcto". Me refiero a escuchar lo que realmente sirve y desechar lo que es ruido puro. Creo que muchas veces es más útil escuchar preguntas que escuchar sentencias. Cuando alguien habla con absoluta autoridad sobre algo, sospechá. Salvo que vos confíes en ese alguien. Pero siempre hable quien hable podés preguntarte por qué las cosas serían cómo él o ella dice y no al revés. Tomate tu tiempo siempre. Nadie, nadie jamás en tu vida te puede apurar a nada. Ya sé que yo las apuro a veces para sentarnos a comer y eso pero no me refiero a eso, sé que me entendés, y si me equivoco, me preguntás y hablamos. Amo hablar con vos hija. Y otra cosa que se me acaba de ocurrir y te prometo que con esto cierro: con esta carta y con todas estas cosas que te cuento y/o te digo, no pretendo enlazarte o generar una eternidad en la conexión que tenemos, soy consciente (te lo dije un montón de veces) que vos ahora con el correr de los años vas a ir ocupándote más de tus cosas y en algún punto, nos guste o no, nuestra relación va a ir cambiando. Nunca desmejorando, pero sí va a ser diferente. Y está muy bien que así sea. Así es. Es así de simple, no amerita ningún análisis. Es el orden de las cosas. Pero nada cambia, vos y tu hermana siempre van a ser todo en mi vida. No hay nada más que yo precise con lo cual, te deseo hija una vida plena, llena de experiencias lindas, todas las que se pueda. Va a haber algunas no tan lindas? Sí mi amor. No amerita análisis. Es así. Y si me apurás te diría que las experiencias feas suelen ser inmanejables, suelen estar fuera del control de uno. Pero lo lindo es que las lindas las producís vos así que deseo con todo mi corazón haber podido llenarte de experiencias lindas en tu infancia para que puedas seguir con el envión y llenarte vos misma de experiencias lindas el resto de tu vida, cosa que las feas no tengan ni chance de hacer contrapeso en la balanza.
+
+Feliz cumpleaños hija. Mejor dicho, feliz año nuevo, feliz vida entera para vos ♥️
+
+Desde muy muy adentro.
+
+Papá</div>
+  </div>
+
+</div>
+
+<script>
+function goToStep(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  if (n === 0) document.getElementById('intro').classList.add('active');
+  else if (n === 'final') document.getElementById('final').classList.add('active');
+  else {
+    document.getElementById('step'+n).classList.add('active');
+    reinitStep(n);
+  }
+  window.scrollTo(0,0);
+}
+
+function reinitStep(n) {
+  if (n === 1) initAnagram();
+  else if (n === 2) initSerie();
+  else if (n === 3) { document.getElementById('cesarInput').value=''; document.getElementById('cesarFeedback').textContent=''; }
+  else if (n === 4) initSudoku();
+  else if (n === 7) initSlide();
+  else if (n === 8) initLights();
+  else if (n === 9) initCripto();
+}
+
+/* =================== DESAFIO 1: Anagrama =================== */
+const anagramWord = "FAMILIA";
+let anagramPlaced = [];
+let anagramShuffled = [];
+
+function initAnagram() {
+  anagramShuffled = anagramWord.split('').map((c, i) => ({c, id: i}));
+  anagramShuffled.sort(() => Math.random() - 0.5);
+  anagramPlaced = [];
+  renderAnagram();
+}
+
+function renderAnagram() {
+  const answerBox = document.getElementById('anagramAnswer');
+  const lettersBox = document.getElementById('anagramLetters');
+  answerBox.innerHTML = '';
+  lettersBox.innerHTML = '';
+
+  for (let i = 0; i < anagramWord.length; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'anagram-slot' + (anagramPlaced[i] !== undefined ? ' filled' : '');
+    slot.textContent = anagramPlaced[i] !== undefined ? anagramPlaced[i].c : '';
+    answerBox.appendChild(slot);
+  }
+
+  anagramShuffled.forEach(item => {
+    const tile = document.createElement('div');
+    const isUsed = anagramPlaced.some(p => p.id === item.id);
+    tile.className = 'anagram-tile' + (isUsed ? ' used' : '');
+    tile.textContent = item.c;
+    tile.onclick = () => placeAnagramLetter(item);
+    lettersBox.appendChild(tile);
+  });
+}
+
+function placeAnagramLetter(item) {
+  if (anagramPlaced.some(p => p.id === item.id)) return;
+  const nextIndex = anagramPlaced.length;
+  if (anagramWord[nextIndex] === item.c) {
+    anagramPlaced.push(item);
+    renderAnagram();
+    document.getElementById('anagramFeedback').textContent = '';
+    if (anagramPlaced.length === anagramWord.length) {
+      document.getElementById('anagramFeedback').className = 'feedback success';
+      document.getElementById('anagramFeedback').textContent = '¡Exacto! Avanzando...';
+      setTimeout(() => goToStep(2), 1000);
+    }
+  } else {
+    document.getElementById('anagramFeedback').className = 'feedback error';
+    document.getElementById('anagramFeedback').textContent = 'Esa letra no va ahí. Probá otra vez.';
+  }
+}
+
+/* =================== DESAFIO 2: Serie numerica =================== */
+// Serie verificada: 3,5,10,12,24,26 -> regla +2, x2 alternada -> siguiente: 26*2=52
+const serieNums = [3, 5, 10, 12, 24, 26];
+const serieAnswer = 52;
+
+function initSerie() {
+  const box = document.getElementById('serieBox');
+  box.innerHTML = '';
+  serieNums.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'serie-num';
+    el.textContent = n;
+    box.appendChild(el);
+  });
+  const missing = document.createElement('div');
+  missing.className = 'serie-num missing';
+  missing.textContent = '?';
+  box.appendChild(missing);
+  document.getElementById('serieInput').value = '';
+  document.getElementById('serieFeedback').textContent = '';
+}
+
+function checkSerie() {
+  const val = parseInt(document.getElementById('serieInput').value);
+  const fb = document.getElementById('serieFeedback');
+  if (val === serieAnswer) {
+    fb.className = 'feedback success';
+    fb.textContent = '¡Correcto! Avanzando...';
+    setTimeout(() => goToStep(3), 1000);
+  } else {
+    fb.className = 'feedback error';
+    fb.textContent = 'No es ese número. Mirá bien la relación entre cada par.';
+  }
+}
+
+/* =================== DESAFIO 3: Codigo Cesar =================== */
+// Mensaje cifrado "IHOLC WUHFH ODUD" con +3 descifra a "FELIZ TRECE LARA"
+const cesarAnswer = "FELICES TRECE LALU";
+
+function checkCesar() {
+  const val = document.getElementById('cesarInput').value.trim().toUpperCase();
+  const fb = document.getElementById('cesarFeedback');
+  if (val === cesarAnswer) {
+    fb.className = 'feedback success';
+    fb.textContent = '¡Decodificado! Avanzando...';
+    setTimeout(() => goToStep(4), 1000);
+  } else {
+    fb.className = 'feedback error';
+    fb.textContent = 'No es eso todavía. Revisá letra por letra.';
+  }
+}
+
+/* =================== DESAFIO 4: Sudoku 4x4 =================== */
+const sudokuSolution = [
+  [1,2,3,4],
+  [3,4,1,2],
+  [2,1,4,3],
+  [4,3,2,1]
+];
+const sudokuPuzzle = [
+  [1,0,3,0],
+  [0,4,0,2],
+  [2,0,4,0],
+  [0,3,0,1]
+];
+
+function initSudoku() {
+  const grid = document.getElementById('sudokuGrid');
+  grid.innerHTML = '';
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const val = sudokuPuzzle[r][c];
+      const cell = document.createElement(val === 0 ? 'input' : 'div');
+      cell.className = 'sudoku-cell ' + (val === 0 ? 'editable' : 'fixed');
+      if (val === 0) {
+        cell.setAttribute('maxlength', '1');
+        cell.setAttribute('inputmode', 'numeric');
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^1-4]/g, '').slice(0,1);
+        });
+      } else {
+        cell.textContent = val;
+      }
+      if (c === 1) cell.dataset.thickR = '1';
+      if (r === 1) cell.dataset.thickB = '1';
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function checkSudoku() {
+  const inputs = document.querySelectorAll('.sudoku-cell.editable');
+  let allFilled = true, allCorrect = true;
+  inputs.forEach(inp => {
+    const r = parseInt(inp.dataset.row), c = parseInt(inp.dataset.col);
+    const val = parseInt(inp.value);
+    if (!val) allFilled = false;
+    else if (val !== sudokuSolution[r][c]) allCorrect = false;
+  });
+  const fb = document.getElementById('sudokuFeedback');
+  if (!allFilled) { fb.className = 'feedback error'; fb.textContent = 'Completá todos los casilleros.'; }
+  else if (!allCorrect) { fb.className = 'feedback error'; fb.textContent = 'Algo no encaja. Revisá filas, columnas y cuadrantes.'; }
+  else {
+    fb.className = 'feedback success';
+    fb.textContent = '¡Excelente! Avanzando...';
+    setTimeout(() => goToStep(5), 1000);
+  }
+}
+
+/* =================== DESAFIO 5: Adivinanza con trampa =================== */
+// Respuesta correcta: 1 varon. Las 3 hijas comparten el mismo hermano.
+function initRiddle1() {
+  const opts = [
+    {text: "3 varones", correct: false},
+    {text: "1 varón", correct: true},
+    {text: "6 varones", correct: false},
+    {text: "0 varones", correct: false},
+  ];
+  const box = document.getElementById('riddleOptions1');
+  box.innerHTML = '';
+  opts.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'riddle-option';
+    div.textContent = o.text;
+    div.onclick = () => selectRiddle(div, o.correct, 'riddleFeedback1', 6);
+    box.appendChild(div);
+  });
+}
+
+/* =================== DESAFIO 6: Acertijo de logica =================== */
+// Verificado: solo cuando Ana tiene el regalo, exactamente 1 afirmacion es verdadera.
+function initRiddle2() {
+  const opts = [
+    {text: "Ana tiene el regalo", correct: true},
+    {text: "Bea tiene el regalo", correct: false},
+    {text: "Cati tiene el regalo", correct: false},
+  ];
+  const box = document.getElementById('riddleOptions2');
+  box.innerHTML = '';
+  opts.forEach(o => {
+    const div = document.createElement('div');
+    div.className = 'riddle-option';
+    div.textContent = o.text;
+    div.onclick = () => selectRiddle(div, o.correct, 'riddleFeedback2', 7);
+    box.appendChild(div);
+  });
+}
+
+function selectRiddle(div, correct, feedbackId, nextStep) {
+  const fb = document.getElementById(feedbackId);
+  const allOptions = div.parentElement.querySelectorAll('.riddle-option');
+  allOptions.forEach(o => o.style.pointerEvents = 'none');
+  if (correct) {
+    div.classList.add('correct');
+    fb.className = 'feedback success';
+    fb.textContent = '¡Correcto! Avanzando...';
+    setTimeout(() => goToStep(nextStep), 1200);
+  } else {
+    div.classList.add('wrong');
+    fb.className = 'feedback error';
+    fb.textContent = 'No es esa. Pensalo de nuevo.';
+    setTimeout(() => {
+      div.classList.remove('wrong');
+      allOptions.forEach(o => o.style.pointerEvents = 'auto');
+      fb.textContent = '';
+    }, 1300);
+  }
+}
+
+/* =================== DESAFIO 7: Sliding puzzle =================== */
+let slideTiles = [];
+const slideSolved = [1,2,3,4,5,6,7,8,0]; // 0 = vacio
+
+function initSlide() {
+  do {
+    slideTiles = [...slideSolved];
+    // shuffle haciendo movimientos validos desde el estado resuelto (garantiza solucionable)
+    let emptyIdx = 8;
+    for (let i = 0; i < 150; i++) {
+      const moves = getValidMoves(emptyIdx);
+      const move = moves[Math.floor(Math.random() * moves.length)];
+      [slideTiles[emptyIdx], slideTiles[move]] = [slideTiles[move], slideTiles[emptyIdx]];
+      emptyIdx = move;
+    }
+  } while (isSlideSolved());
+  renderSlide();
+}
+
+function getValidMoves(idx) {
+  const row = Math.floor(idx / 3), col = idx % 3;
+  const moves = [];
+  if (row > 0) moves.push(idx - 3);
+  if (row < 2) moves.push(idx + 3);
+  if (col > 0) moves.push(idx - 1);
+  if (col < 2) moves.push(idx + 1);
+  return moves;
+}
+
+function isSlideSolved() {
+  return slideTiles.every((v, i) => v === slideSolved[i]);
+}
+
+function renderSlide() {
+  const grid = document.getElementById('slideGrid');
+  grid.innerHTML = '';
+  slideTiles.forEach((val, idx) => {
+    const tile = document.createElement('div');
+    tile.className = 'slide-tile' + (val === 0 ? ' empty' : '');
+    tile.textContent = val === 0 ? '' : val;
+    tile.onclick = () => trySlideMove(idx);
+    grid.appendChild(tile);
+  });
+}
+
+function trySlideMove(idx) {
+  const emptyIdx = slideTiles.indexOf(0);
+  const valid = getValidMoves(emptyIdx);
+  if (valid.includes(idx)) {
+    [slideTiles[emptyIdx], slideTiles[idx]] = [slideTiles[idx], slideTiles[emptyIdx]];
+    renderSlide();
+    if (isSlideSolved()) {
+      document.getElementById('slideFeedback').className = 'feedback success';
+      document.getElementById('slideFeedback').textContent = '¡Ordenado! Avanzando...';
+      setTimeout(() => goToStep(8), 1000);
+    }
+  }
+}
+
+/* =================== DESAFIO 8: Lights Out =================== */
+// Estado inicial verificado: resoluble en minimo 7 movimientos
+// [0,1,1, 1,1,1, 1,1,0] -> esquinas apagadas, todo lo demas encendido
+const lightsInitial = [0,1,1,1,1,1,1,1,0];
+let lightsState = [];
+let lightsCount = 0;
+
+function initLights() {
+  lightsState = [...lightsInitial];
+  lightsCount = 0;
+  document.getElementById('lightsCount').textContent = 0;
+  document.getElementById('lightsFeedback').textContent = '';
+  renderLights();
+}
+
+function resetLights() {
+  initLights();
+}
+
+function renderLights() {
+  const grid = document.getElementById('lightsGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'lights-cell ' + (lightsState[i] ? 'on' : 'off');
+    cell.onclick = () => clickLight(i);
+    grid.appendChild(cell);
+  }
+}
+
+function clickLight(idx) {
+  const r = Math.floor(idx / 3), c = idx % 3;
+  const neighbors = [[0,0],[1,0],[-1,0],[0,1],[0,-1]];
+  neighbors.forEach(([dr, dc]) => {
+    const nr = r+dr, nc = c+dc;
+    if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+      lightsState[nr*3+nc] ^= 1;
+    }
+  });
+  lightsCount++;
+  document.getElementById('lightsCount').textContent = lightsCount;
+  renderLights();
+  if (lightsState.every(v => v === 0)) {
+    document.getElementById('lightsFeedback').className = 'feedback success';
+    document.getElementById('lightsFeedback').textContent = `¡Apagaste todo en ${lightsCount} movimientos! Avanzando...`;
+    setTimeout(() => goToStep(9), 1200);
+  }
+}
+
+/* =================== DESAFIO 9: Criptoaritmetica =================== */
+// Verificado por backtracking: solucion UNICA -> L=2 A=4 R=8 O=6 M=9
+// LARA(2484) + LARA(2484) = AMOR(4968)
+const criptoSolution = {L:2, A:4, R:8, O:6, M:9};
+const criptoLetters = ['L','A','R','O','M'];
+
+function initCripto() {
+  const box = document.getElementById('criptoInputs');
+  box.innerHTML = '';
+  criptoLetters.forEach(letter => {
+    const wrap = document.createElement('div');
+    wrap.className = 'letter-box';
+    const label = document.createElement('label');
+    label.textContent = letter;
+    const input = document.createElement('input');
+    input.setAttribute('maxlength', '1');
+    input.setAttribute('inputmode', 'numeric');
+    input.dataset.letter = letter;
+    input.addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0,1);
+    });
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    box.appendChild(wrap);
+  });
+}
+
+function checkCripto() {
+  const inputs = document.querySelectorAll('#criptoInputs input');
+  let allFilled = true, allCorrect = true;
+  const usedDigits = new Set();
+  let duplicate = false;
+  inputs.forEach(inp => {
+    const letter = inp.dataset.letter;
+    const val = parseInt(inp.value);
+    if (isNaN(val)) { allFilled = false; return; }
+    if (usedDigits.has(val)) duplicate = true;
+    usedDigits.add(val);
+    if (val !== criptoSolution[letter]) allCorrect = false;
+  });
+  const fb = document.getElementById('criptoFeedback');
+  if (!allFilled) { fb.className = 'feedback error'; fb.textContent = 'Completá todas las letras.'; }
+  else if (duplicate) { fb.className = 'feedback error'; fb.textContent = 'Dos letras distintas no pueden tener el mismo número.'; }
+  else if (!allCorrect) { fb.className = 'feedback error'; fb.textContent = 'Todavía no cierra la suma. Probá otra combinación.'; }
+  else {
+    fb.className = 'feedback success';
+    fb.textContent = '¡PERFECTO! Abriendo la carta...';
+    setTimeout(() => goToStep('final'), 1200);
+  }
+}
+
+/* =================== INIT GENERAL =================== */
+// Solo inicializamos lo que no depende de re-jugar: las opciones de los acertijos de texto.
+// El resto (memoria, anagrama, serie, sudoku, slide, laberinto, cripto) se inicializa
+// automáticamente cada vez que se entra a su pantalla, vía reinitStep().
+initRiddle1();
+initRiddle2();
+</script>
+
+</body>
+</html>
