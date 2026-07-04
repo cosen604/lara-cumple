@@ -229,7 +229,7 @@
   <div class="screen active" id="intro">
     <div class="envelope pulse">🔒💌</div>
     <h1>Para Lara</h1>
-    <p class="subtitle">Hay una carta esperándote.<br>Pero antes, 10 desafíos te separan de ella.</p>
+    <p class="subtitle">Hay una carta esperándote.<br>Pero antes, 9 desafíos te separan de ella.</p>
     <p>¿Lista?</p>
     <button class="start-btn" onclick="goToStep(1)">Empezar →</button>
   </div>
@@ -244,7 +244,7 @@
     <p class="subtitle">Estas letras esconden una palabra. Tocalas en orden para formarla.</p>
     <div class="anagram-answer" id="anagramAnswer"></div>
     <div class="anagram-letters" id="anagramLetters"></div>
-    <p class="hint">Pista: es algo que sentís por tu familia.</p>
+    <p class="hint">Pista: tiene 7 letras y es lo más importante de la vida.</p>
     <div class="feedback" id="anagramFeedback"></div>
   </div>
 
@@ -271,7 +271,7 @@
     </div>
     <h1>Mensaje cifrado</h1>
     <p class="subtitle">Cada letra fue reemplazada por otra, siempre la misma cantidad de lugares hacia adelante en el abecedario. Descifrá el mensaje.</p>
-    <div class="cesar-box">IHOLC WUHFH ODUD</div>
+    <div class="cesar-box">IHOLFHV WUHFH ODOX</div>
     <p class="hint">Pista: probá desplazar cada letra 3 lugares hacia atrás (A → X, B → Y...).</p>
     <input type="text" class="cesar-input" id="cesarInput" placeholder="Escribí el mensaje descifrado">
     <br>
@@ -516,7 +516,7 @@ function checkSerie() {
 
 /* =================== DESAFIO 3: Codigo Cesar =================== */
 // Mensaje cifrado "IHOLC WUHFH ODUD" con +3 descifra a "FELIZ TRECE LARA"
-const cesarAnswer = "FELIZ TRECE LARA";
+const cesarAnswer = "FELICES TRECE LALU";
 
 function checkCesar() {
   const val = document.getElementById('cesarInput').value.trim().toUpperCase();
